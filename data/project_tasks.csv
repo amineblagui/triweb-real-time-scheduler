@@ -1,0 +1,391 @@
+task_id,project_id,feature,workflow_order,department,estimated_hours,priority,status
+T0001,P001,Dashboard,1,R,4.5,High,Pending
+T0002,P001,Dashboard,2,Graphes,5.3,High,Pending
+T0003,P001,Dashboard,3,Quality_Control,3.7,Medium,Pending
+T0004,P001,Orders,1,R,10.8,High,Pending
+T0005,P001,Orders,2,Graphes,6.3,High,Pending
+T0006,P001,Orders,3,Quality_Control,3.8,Medium,Pending
+T0007,P001,Landing Page,1,R,9.1,High,Pending
+T0008,P001,Landing Page,2,Graphes,6.8,High,Pending
+T0009,P001,Landing Page,3,Quality_Control,2.5,Medium,Pending
+T0010,P001,Payment,1,R,5.0,High,Pending
+T0011,P001,Payment,2,Graphes,3.2,High,Pending
+T0012,P001,Payment,3,Quality_Control,1.4,Medium,Pending
+T0013,P001,Cart,1,R,10.3,High,Pending
+T0014,P001,Cart,2,Graphes,2.2,High,Pending
+T0015,P001,Cart,3,Quality_Control,2.7,Medium,Pending
+T0016,P001,Admin Panel,1,R,7.0,High,Pending
+T0017,P001,Admin Panel,2,Graphes,6.8,High,Pending
+T0018,P001,Admin Panel,3,Quality_Control,2.7,Medium,Pending
+T0019,P001,Products,1,R,8.9,High,Pending
+T0020,P001,Products,2,Graphes,2.5,High,Pending
+T0021,P001,Products,3,Quality_Control,1.9,Medium,Pending
+T0022,P001,Profile,1,R,12.0,High,Pending
+T0023,P001,Profile,2,Graphes,6.3,High,Pending
+T0024,P001,Profile,3,Quality_Control,2.6,Medium,Pending
+T0025,P002,Payment,1,R,9.4,High,Pending
+T0026,P002,Payment,2,Graphes,4.1,High,Pending
+T0027,P002,Payment,3,Quality_Control,3.6,Medium,Pending
+T0028,P002,Landing Page,1,R,10.2,High,Pending
+T0029,P002,Landing Page,2,Graphes,5.8,High,Pending
+T0030,P002,Landing Page,3,Quality_Control,1.5,Medium,Pending
+T0031,P002,Dashboard,1,R,11.7,High,Pending
+T0032,P002,Dashboard,2,Graphes,4.6,High,Pending
+T0033,P002,Dashboard,3,Quality_Control,3.7,Medium,Pending
+T0034,P002,Orders,1,R,4.4,High,Pending
+T0035,P002,Orders,2,Graphes,2.7,High,Pending
+T0036,P002,Orders,3,Quality_Control,1.5,Medium,Pending
+T0037,P002,Cart,1,R,5.3,High,Pending
+T0038,P002,Cart,2,Graphes,3.9,High,Pending
+T0039,P002,Cart,3,Quality_Control,3.1,Medium,Pending
+T0040,P002,Login,1,R,6.8,High,Pending
+T0041,P002,Login,2,Graphes,7.6,High,Pending
+T0042,P002,Login,3,Quality_Control,3.7,Medium,Pending
+T0043,P002,Profile,1,R,10.8,High,Pending
+T0044,P002,Profile,2,Graphes,3.5,High,Pending
+T0045,P002,Profile,3,Quality_Control,2.9,Medium,Pending
+T0046,P002,Notifications,1,R,8.4,High,Pending
+T0047,P002,Notifications,2,Graphes,2.8,High,Pending
+T0048,P002,Notifications,3,Quality_Control,1.9,Medium,Pending
+T0049,P003,Notifications,1,R,9.0,High,Pending
+T0050,P003,Notifications,2,Graphes,7.4,High,Pending
+T0051,P003,Notifications,3,Quality_Control,2.0,Medium,Pending
+T0052,P003,Landing Page,1,R,11.4,High,Pending
+T0053,P003,Landing Page,2,Graphes,2.2,High,Pending
+T0054,P003,Landing Page,3,Quality_Control,3.6,Medium,Pending
+T0055,P003,Dashboard,1,R,4.6,High,Pending
+T0056,P003,Dashboard,2,Graphes,7.7,High,Pending
+T0057,P003,Dashboard,3,Quality_Control,3.3,Medium,Pending
+T0058,P003,Products,1,R,6.1,High,Pending
+T0059,P003,Products,2,Graphes,3.3,High,Pending
+T0060,P003,Products,3,Quality_Control,2.7,Medium,Pending
+T0061,P003,Payment,1,R,8.9,High,Pending
+T0062,P003,Payment,2,Graphes,2.2,High,Pending
+T0063,P003,Payment,3,Quality_Control,3.7,Medium,Pending
+T0064,P003,Admin Panel,1,R,8.4,High,Pending
+T0065,P003,Admin Panel,2,Graphes,5.9,High,Pending
+T0066,P003,Admin Panel,3,Quality_Control,1.9,Medium,Pending
+T0067,P003,Cart,1,R,6.0,High,Pending
+T0068,P003,Cart,2,Graphes,6.8,High,Pending
+T0069,P003,Cart,3,Quality_Control,2.2,Medium,Pending
+T0070,P003,Orders,1,R,7.6,High,Pending
+T0071,P003,Orders,2,Graphes,6.1,High,Pending
+T0072,P003,Orders,3,Quality_Control,1.5,Medium,Pending
+T0073,P004,Payment,1,R,10.9,High,Pending
+T0074,P004,Payment,2,Graphes,3.9,High,Pending
+T0075,P004,Payment,3,Quality_Control,4.0,Medium,Pending
+T0076,P004,Orders,1,R,6.8,High,Pending
+T0077,P004,Orders,2,Graphes,4.4,High,Pending
+T0078,P004,Orders,3,Quality_Control,3.3,Medium,Pending
+T0079,P004,Notifications,1,R,8.1,High,Pending
+T0080,P004,Notifications,2,Graphes,2.6,High,Pending
+T0081,P004,Notifications,3,Quality_Control,1.7,Medium,Pending
+T0082,P004,Landing Page,1,R,5.0,High,Pending
+T0083,P004,Landing Page,2,Graphes,4.7,High,Pending
+T0084,P004,Landing Page,3,Quality_Control,1.4,Medium,Pending
+T0085,P004,Dashboard,1,R,4.4,High,Pending
+T0086,P004,Dashboard,2,Graphes,7.7,High,Pending
+T0087,P004,Dashboard,3,Quality_Control,3.6,Medium,Pending
+T0088,P004,Products,1,R,7.3,High,Pending
+T0089,P004,Products,2,Graphes,7.8,High,Pending
+T0090,P004,Products,3,Quality_Control,3.7,Medium,Pending
+T0091,P004,Admin Panel,1,R,10.5,High,Pending
+T0092,P004,Admin Panel,2,Graphes,7.6,High,Pending
+T0093,P004,Admin Panel,3,Quality_Control,3.2,Medium,Pending
+T0094,P004,Profile,1,R,5.5,High,Pending
+T0095,P004,Profile,2,Graphes,3.0,High,Pending
+T0096,P004,Profile,3,Quality_Control,4.0,Medium,Pending
+T0097,P005,Orders,1,R,7.7,High,Pending
+T0098,P005,Orders,2,Graphes,3.4,High,Pending
+T0099,P005,Orders,3,Quality_Control,2.8,Medium,Pending
+T0100,P005,Admin Panel,1,R,4.4,High,Pending
+T0101,P005,Admin Panel,2,Graphes,3.7,High,Pending
+T0102,P005,Admin Panel,3,Quality_Control,2.8,Medium,Pending
+T0103,P005,Products,1,R,10.7,High,Pending
+T0104,P005,Products,2,Graphes,6.0,High,Pending
+T0105,P005,Products,3,Quality_Control,1.9,Medium,Pending
+T0106,P005,Profile,1,R,4.1,High,Pending
+T0107,P005,Profile,2,Graphes,2.6,High,Pending
+T0108,P005,Profile,3,Quality_Control,1.4,Medium,Pending
+T0109,P005,Login,1,R,6.1,High,Pending
+T0110,P005,Login,2,Graphes,4.2,High,Pending
+T0111,P005,Login,3,Quality_Control,2.2,Medium,Pending
+T0112,P005,Cart,1,R,4.4,High,Pending
+T0113,P005,Cart,2,Graphes,2.3,High,Pending
+T0114,P005,Cart,3,Quality_Control,2.7,Medium,Pending
+T0115,P005,Payment,1,R,6.9,High,Pending
+T0116,P005,Payment,2,Graphes,3.7,High,Pending
+T0117,P005,Payment,3,Quality_Control,2.2,Medium,Pending
+T0118,P005,Dashboard,1,R,7.6,High,Pending
+T0119,P005,Dashboard,2,Graphes,5.3,High,Pending
+T0120,P005,Dashboard,3,Quality_Control,3.5,Medium,Pending
+T0121,P006,Admin Panel,1,R,11.5,High,Pending
+T0122,P006,Admin Panel,2,Graphes,6.5,High,Pending
+T0123,P006,Admin Panel,3,Quality_Control,1.6,Medium,Pending
+T0124,P006,Landing Page,1,R,8.1,High,Pending
+T0125,P006,Landing Page,2,Graphes,5.0,High,Pending
+T0126,P006,Landing Page,3,Quality_Control,1.1,Medium,Pending
+T0127,P006,Dashboard,1,R,5.1,High,Pending
+T0128,P006,Dashboard,2,Graphes,4.0,High,Pending
+T0129,P006,Dashboard,3,Quality_Control,2.4,Medium,Pending
+T0130,P006,Login,1,R,7.7,High,Pending
+T0131,P006,Login,2,Graphes,5.6,High,Pending
+T0132,P006,Login,3,Quality_Control,2.5,Medium,Pending
+T0133,P006,Profile,1,R,6.6,High,Pending
+T0134,P006,Profile,2,Graphes,5.7,High,Pending
+T0135,P006,Profile,3,Quality_Control,1.5,Medium,Pending
+T0136,P006,Orders,1,R,11.9,High,Pending
+T0137,P006,Orders,2,Graphes,6.4,High,Pending
+T0138,P006,Orders,3,Quality_Control,1.9,Medium,Pending
+T0139,P006,Products,1,R,6.7,High,Pending
+T0140,P006,Products,2,Graphes,7.0,High,Pending
+T0141,P006,Products,3,Quality_Control,2.6,Medium,Pending
+T0142,P006,Cart,1,R,9.7,High,Pending
+T0143,P006,Cart,2,Graphes,3.8,High,Pending
+T0144,P006,Cart,3,Quality_Control,3.4,Medium,Pending
+T0145,P007,Cart,1,R,7.8,High,Pending
+T0146,P007,Cart,2,Graphes,7.8,High,Pending
+T0147,P007,Cart,3,Quality_Control,3.3,Medium,Pending
+T0148,P007,Admin Panel,1,R,10.2,High,Pending
+T0149,P007,Admin Panel,2,Graphes,5.5,High,Pending
+T0150,P007,Admin Panel,3,Quality_Control,3.2,Medium,Pending
+T0151,P007,Landing Page,1,R,8.7,High,Pending
+T0152,P007,Landing Page,2,Graphes,3.0,High,Pending
+T0153,P007,Landing Page,3,Quality_Control,2.9,Medium,Pending
+T0154,P007,Profile,1,R,9.0,High,Pending
+T0155,P007,Profile,2,Graphes,7.0,High,Pending
+T0156,P007,Profile,3,Quality_Control,1.4,Medium,Pending
+T0157,P007,Products,1,R,9.4,High,Pending
+T0158,P007,Products,2,Graphes,2.2,High,Pending
+T0159,P007,Products,3,Quality_Control,3.8,Medium,Pending
+T0160,P007,Dashboard,1,R,4.9,High,Pending
+T0161,P007,Dashboard,2,Graphes,2.1,High,Pending
+T0162,P007,Dashboard,3,Quality_Control,1.9,Medium,Pending
+T0163,P007,Login,1,R,5.2,High,Pending
+T0164,P007,Login,2,Graphes,6.1,High,Pending
+T0165,P007,Login,3,Quality_Control,2.2,Medium,Pending
+T0166,P007,Notifications,1,R,10.2,High,Pending
+T0167,P007,Notifications,2,Graphes,7.5,High,Pending
+T0168,P007,Notifications,3,Quality_Control,3.6,Medium,Pending
+T0169,P008,Login,1,R,11.7,High,Pending
+T0170,P008,Login,2,Graphes,4.8,High,Pending
+T0171,P008,Login,3,Quality_Control,2.6,Medium,Pending
+T0172,P008,Dashboard,1,R,8.4,High,Pending
+T0173,P008,Dashboard,2,Graphes,6.1,High,Pending
+T0174,P008,Dashboard,3,Quality_Control,3.6,Medium,Pending
+T0175,P008,Profile,1,R,9.4,High,Pending
+T0176,P008,Profile,2,Graphes,6.8,High,Pending
+T0177,P008,Profile,3,Quality_Control,1.8,Medium,Pending
+T0178,P008,Products,1,R,7.9,High,Pending
+T0179,P008,Products,2,Graphes,7.7,High,Pending
+T0180,P008,Products,3,Quality_Control,1.8,Medium,Pending
+T0181,P008,Notifications,1,R,6.4,High,Pending
+T0182,P008,Notifications,2,Graphes,7.6,High,Pending
+T0183,P008,Notifications,3,Quality_Control,3.9,Medium,Pending
+T0184,P008,Orders,1,R,10.2,High,Pending
+T0185,P008,Orders,2,Graphes,6.2,High,Pending
+T0186,P008,Orders,3,Quality_Control,3.1,Medium,Pending
+T0187,P008,Payment,1,R,7.9,High,Pending
+T0188,P008,Payment,2,Graphes,4.9,High,Pending
+T0189,P008,Payment,3,Quality_Control,2.7,Medium,Pending
+T0190,P008,Landing Page,1,R,11.5,High,Pending
+T0191,P008,Landing Page,2,Graphes,6.3,High,Pending
+T0192,P008,Landing Page,3,Quality_Control,1.9,Medium,Pending
+T0193,P009,Admin Panel,1,R,6.3,High,Pending
+T0194,P009,Admin Panel,2,Graphes,6.3,High,Pending
+T0195,P009,Admin Panel,3,Quality_Control,2.0,Medium,Pending
+T0196,P009,Notifications,1,R,7.5,High,Pending
+T0197,P009,Notifications,2,Graphes,3.5,High,Pending
+T0198,P009,Notifications,3,Quality_Control,2.4,Medium,Pending
+T0199,P009,Payment,1,R,5.6,High,Pending
+T0200,P009,Payment,2,Graphes,5.2,High,Pending
+T0201,P009,Payment,3,Quality_Control,3.8,Medium,Pending
+T0202,P009,Profile,1,R,9.6,High,Pending
+T0203,P009,Profile,2,Graphes,2.8,High,Pending
+T0204,P009,Profile,3,Quality_Control,2.8,Medium,Pending
+T0205,P009,Dashboard,1,R,8.7,High,Pending
+T0206,P009,Dashboard,2,Graphes,3.5,High,Pending
+T0207,P009,Dashboard,3,Quality_Control,3.0,Medium,Pending
+T0208,P009,Landing Page,1,R,8.2,High,Pending
+T0209,P009,Landing Page,2,Graphes,5.8,High,Pending
+T0210,P009,Landing Page,3,Quality_Control,1.2,Medium,Pending
+T0211,P009,Cart,1,R,7.3,High,Pending
+T0212,P009,Cart,2,Graphes,6.3,High,Pending
+T0213,P009,Cart,3,Quality_Control,1.3,Medium,Pending
+T0214,P009,Login,1,R,10.2,High,Pending
+T0215,P009,Login,2,Graphes,2.0,High,Pending
+T0216,P009,Login,3,Quality_Control,2.7,Medium,Pending
+T0217,P010,Dashboard,1,R,6.3,High,Pending
+T0218,P010,Dashboard,2,Graphes,2.4,High,Pending
+T0219,P010,Dashboard,3,Quality_Control,3.3,Medium,Pending
+T0220,P010,Payment,1,R,9.2,High,Pending
+T0221,P010,Payment,2,Graphes,3.4,High,Pending
+T0222,P010,Payment,3,Quality_Control,3.2,Medium,Pending
+T0223,P010,Orders,1,R,10.8,High,Pending
+T0224,P010,Orders,2,Graphes,2.2,High,Pending
+T0225,P010,Orders,3,Quality_Control,3.8,Medium,Pending
+T0226,P010,Profile,1,R,7.3,High,Pending
+T0227,P010,Profile,2,Graphes,7.0,High,Pending
+T0228,P010,Profile,3,Quality_Control,3.8,Medium,Pending
+T0229,P010,Cart,1,R,4.3,High,Pending
+T0230,P010,Cart,2,Graphes,7.0,High,Pending
+T0231,P010,Cart,3,Quality_Control,3.4,Medium,Pending
+T0232,P010,Landing Page,1,R,5.5,High,Pending
+T0233,P010,Landing Page,2,Graphes,6.5,High,Pending
+T0234,P010,Landing Page,3,Quality_Control,3.6,Medium,Pending
+T0235,P010,Admin Panel,1,R,6.3,High,Pending
+T0236,P010,Admin Panel,2,Graphes,2.2,High,Pending
+T0237,P010,Admin Panel,3,Quality_Control,1.9,Medium,Pending
+T0238,P010,Products,1,R,8.8,High,Pending
+T0239,P010,Products,2,Graphes,7.6,High,Pending
+T0240,P010,Products,3,Quality_Control,2.0,Medium,Pending
+T0241,P011,Orders,1,R,10.5,High,Pending
+T0242,P011,Orders,2,Graphes,4.0,High,Pending
+T0243,P011,Orders,3,Quality_Control,3.2,Medium,Pending
+T0244,P011,Notifications,1,R,9.2,High,Pending
+T0245,P011,Notifications,2,Graphes,6.3,High,Pending
+T0246,P011,Notifications,3,Quality_Control,1.0,Medium,Pending
+T0247,P011,Admin Panel,1,R,6.7,High,Pending
+T0248,P011,Admin Panel,2,Graphes,3.8,High,Pending
+T0249,P011,Admin Panel,3,Quality_Control,3.0,Medium,Pending
+T0250,P011,Landing Page,1,R,5.5,High,Pending
+T0251,P011,Landing Page,2,Graphes,5.7,High,Pending
+T0252,P011,Landing Page,3,Quality_Control,2.9,Medium,Pending
+T0253,P011,Products,1,R,7.2,High,Pending
+T0254,P011,Products,2,Graphes,4.6,High,Pending
+T0255,P011,Products,3,Quality_Control,2.0,Medium,Pending
+T0256,P011,Profile,1,R,7.2,High,Pending
+T0257,P011,Profile,2,Graphes,2.6,High,Pending
+T0258,P011,Profile,3,Quality_Control,3.9,Medium,Pending
+T0259,P011,Dashboard,1,R,7.8,High,Pending
+T0260,P011,Dashboard,2,Graphes,7.6,High,Pending
+T0261,P011,Dashboard,3,Quality_Control,1.0,Medium,Pending
+T0262,P011,Login,1,R,7.1,High,Pending
+T0263,P011,Login,2,Graphes,4.7,High,Pending
+T0264,P011,Login,3,Quality_Control,1.8,Medium,Pending
+T0265,P012,Cart,1,R,9.3,High,Pending
+T0266,P012,Cart,2,Graphes,4.8,High,Pending
+T0267,P012,Cart,3,Quality_Control,1.5,Medium,Pending
+T0268,P012,Products,1,R,9.5,High,Pending
+T0269,P012,Products,2,Graphes,7.5,High,Pending
+T0270,P012,Products,3,Quality_Control,3.7,Medium,Pending
+T0271,P012,Login,1,R,10.2,High,Pending
+T0272,P012,Login,2,Graphes,6.1,High,Pending
+T0273,P012,Login,3,Quality_Control,2.9,Medium,Pending
+T0274,P012,Dashboard,1,R,11.5,High,Pending
+T0275,P012,Dashboard,2,Graphes,4.2,High,Pending
+T0276,P012,Dashboard,3,Quality_Control,1.7,Medium,Pending
+T0277,P012,Admin Panel,1,R,11.7,High,Pending
+T0278,P012,Admin Panel,2,Graphes,4.9,High,Pending
+T0279,P012,Admin Panel,3,Quality_Control,2.4,Medium,Pending
+T0280,P012,Payment,1,R,11.9,High,Pending
+T0281,P012,Payment,2,Graphes,4.2,High,Pending
+T0282,P012,Payment,3,Quality_Control,3.1,Medium,Pending
+T0283,P012,Landing Page,1,R,11.3,High,Pending
+T0284,P012,Landing Page,2,Graphes,6.5,High,Pending
+T0285,P012,Landing Page,3,Quality_Control,3.4,Medium,Pending
+T0286,P012,Orders,1,R,10.6,High,Pending
+T0287,P012,Orders,2,Graphes,6.6,High,Pending
+T0288,P012,Orders,3,Quality_Control,3.0,Medium,Pending
+T0289,P013,Admin Panel,1,R,4.9,High,Pending
+T0290,P013,Admin Panel,2,Graphes,7.0,High,Pending
+T0291,P013,Admin Panel,3,Quality_Control,3.7,Medium,Pending
+T0292,P013,Landing Page,1,R,5.6,High,Pending
+T0293,P013,Landing Page,2,Graphes,5.2,High,Pending
+T0294,P013,Landing Page,3,Quality_Control,1.5,Medium,Pending
+T0295,P013,Orders,1,R,10.8,High,Pending
+T0296,P013,Orders,2,Graphes,4.7,High,Pending
+T0297,P013,Orders,3,Quality_Control,3.0,Medium,Pending
+T0298,P013,Products,1,R,9.7,High,Pending
+T0299,P013,Products,2,Graphes,4.9,High,Pending
+T0300,P013,Products,3,Quality_Control,3.7,Medium,Pending
+T0301,P013,Cart,1,R,7.6,High,Pending
+T0302,P013,Cart,2,Graphes,2.3,High,Pending
+T0303,P013,Cart,3,Quality_Control,1.4,Medium,Pending
+T0304,P013,Dashboard,1,R,7.3,High,Pending
+T0305,P013,Dashboard,2,Graphes,5.4,High,Pending
+T0306,P013,Dashboard,3,Quality_Control,2.7,Medium,Pending
+T0307,P013,Login,1,R,9.4,High,Pending
+T0308,P013,Login,2,Graphes,3.8,High,Pending
+T0309,P013,Login,3,Quality_Control,1.1,Medium,Pending
+T0310,P013,Payment,1,R,6.0,High,Pending
+T0311,P013,Payment,2,Graphes,2.0,High,Pending
+T0312,P013,Payment,3,Quality_Control,1.7,Medium,Pending
+T0313,P014,Landing Page,1,R,11.9,High,Pending
+T0314,P014,Landing Page,2,Graphes,4.8,High,Pending
+T0315,P014,Landing Page,3,Quality_Control,1.9,Medium,Pending
+T0316,P014,Login,1,R,5.4,High,Pending
+T0317,P014,Login,2,Graphes,2.8,High,Pending
+T0318,P014,Login,3,Quality_Control,2.9,Medium,Pending
+T0319,P014,Payment,1,R,9.8,High,Pending
+T0320,P014,Payment,2,Graphes,7.8,High,Pending
+T0321,P014,Payment,3,Quality_Control,2.1,Medium,Pending
+T0322,P014,Dashboard,1,R,11.1,High,Pending
+T0323,P014,Dashboard,2,Graphes,4.7,High,Pending
+T0324,P014,Dashboard,3,Quality_Control,3.8,Medium,Pending
+T0325,P014,Cart,1,R,7.0,High,Pending
+T0326,P014,Cart,2,Graphes,2.5,High,Pending
+T0327,P014,Cart,3,Quality_Control,3.9,Medium,Pending
+T0328,P014,Notifications,1,R,11.0,High,Pending
+T0329,P014,Notifications,2,Graphes,2.8,High,Pending
+T0330,P014,Notifications,3,Quality_Control,3.6,Medium,Pending
+T0331,P014,Products,1,R,4.9,High,Pending
+T0332,P014,Products,2,Graphes,8.0,High,Pending
+T0333,P014,Products,3,Quality_Control,2.2,Medium,Pending
+T0334,P014,Profile,1,R,5.0,High,Pending
+T0335,P014,Profile,2,Graphes,7.9,High,Pending
+T0336,P014,Profile,3,Quality_Control,3.5,Medium,Pending
+T0337,P015,Login,1,R,7.0,High,Pending
+T0338,P015,Login,2,Graphes,3.4,High,Pending
+T0339,P015,Login,3,Quality_Control,2.4,Medium,Pending
+T0340,P015,Products,1,R,5.2,High,Pending
+T0341,P015,Products,2,Graphes,3.1,High,Pending
+T0342,P015,Products,3,Quality_Control,3.6,Medium,Pending
+T0343,P015,Orders,1,R,10.1,High,Pending
+T0344,P015,Orders,2,Graphes,2.2,High,Pending
+T0345,P015,Orders,3,Quality_Control,3.0,Medium,Pending
+T0346,P015,Cart,1,R,8.9,High,Pending
+T0347,P015,Cart,2,Graphes,7.6,High,Pending
+T0348,P015,Cart,3,Quality_Control,3.7,Medium,Pending
+T0349,P015,Payment,1,R,5.9,High,Pending
+T0350,P015,Payment,2,Graphes,2.4,High,Pending
+T0351,P015,Payment,3,Quality_Control,2.8,Medium,Pending
+T0352,P015,Notifications,1,R,7.6,High,Pending
+T0353,P015,Notifications,2,Graphes,6.0,High,Pending
+T0354,P015,Notifications,3,Quality_Control,3.6,Medium,Pending
+T0355,P015,Profile,1,R,6.0,High,Pending
+T0356,P015,Profile,2,Graphes,2.3,High,Pending
+T0357,P015,Profile,3,Quality_Control,2.3,Medium,Pending
+T0358,P015,Dashboard,1,R,8.3,High,Pending
+T0359,P015,Dashboard,2,Graphes,6.5,High,Pending
+T0360,P015,Dashboard,3,Quality_Control,3.3,Medium,Pending
+T559E27,P016,Login,1,R,8.0,,Pending
+T9B87E4,P016,Login,2,Graph,8.0,,Pending
+TD343B7,P016,Login,3,CQ,8.0,,Pending
+T2F7037,P016,Dashboard,1,R,8.0,,Pending
+TF03FBF,P016,Dashboard,2,Graph,8.0,,Pending
+TB00237,P016,Dashboard,3,CQ,8.0,,Pending
+TF5F274,P016,Patients,1,R,8.0,,Pending
+TB7E2F3,P016,Patients,2,Graph,8.0,,Pending
+T659612,P016,Patients,3,CQ,8.0,,Pending
+TF9125B,P016,Appointments,1,R,8.0,,Pending
+TEF9893,P016,Appointments,2,Graph,8.0,,Pending
+T07729F,P016,Appointments,3,CQ,8.0,,Pending
+T85EBD6,P016,Reports,1,R,8.0,,Pending
+TE9D1A2,P016,Reports,2,Graph,8.0,,Pending
+T992B39,P016,Reports,3,CQ,8.0,,Pending
+TD62C3E,P017,Login,1,R,8.0,,Pending
+T27DD4D,P017,Login,2,Graph,8.0,,Pending
+TAB2150,P017,Login,3,CQ,8.0,,Pending
+T20E152,P017,Dashboard,1,R,8.0,,Pending
+T4BA7DD,P017,Dashboard,2,Graph,8.0,,Pending
+T7079D3,P017,Dashboard,3,CQ,8.0,,Pending
+T2A7EA6,P017,Patients,1,R,8.0,,Pending
+T3EDC5D,P017,Patients,2,Graph,8.0,,Pending
+T2D3971,P017,Patients,3,CQ,8.0,,Pending
+T769FF0,P017,Appointments,1,R,8.0,,Pending
+T7560C7,P017,Appointments,2,Graph,8.0,,Pending
+T04EEEC,P017,Appointments,3,CQ,8.0,,Pending
+T41C888,P017,Reports,1,R,8.0,,Pending
+TC2488A,P017,Reports,2,Graph,8.0,,Pending
+T8F3448,P017,Reports,3,CQ,8.0,,Pending

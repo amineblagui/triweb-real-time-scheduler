@@ -1,0 +1,6 @@
+leave_id,employee_id,leave_type,start_date,end_date
+L001,E003,Vacation,2026-07-13,2026-07-17
+L002,E008,Training,2026-07-20,2026-07-21
+L003,E014,Business Trip,2026-07-27,2026-07-29
+L004,E021,Vacation,2026-08-03,2026-08-07
+L005,E026,Planned Leave,2026-08-10,2026-08-12
