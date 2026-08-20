@@ -321,8 +321,37 @@ class SchedulerEngine:
             if stage_is_finished(project, department):
                 continue
             if stage_needs_assignment(project, department):
-                if self.registry.has_local_assignment(project["ProjectID"], department):
-                    assignments.append(self._assignment_record(project, department, Status="Pending registration", Reason="Local scheduler assignment already exists; awaiting Triweb confirmation."))
+                if self.registry.has_local_assignment(
+                    project["ProjectID"],
+                    department
+                ):
+                    existing = self.registry.assignments()
+
+                    existing = existing[
+                        existing["ProjectID"].astype(str).eq(
+                            str(project["ProjectID"])
+                        )
+                        & existing["Department"].astype(str).eq(
+                            str(department)
+                        )
+                    ]
+
+                    if not existing.empty:
+                        existing_assignment = existing.iloc[-1].to_dict()
+
+                        existing_assignment["Status"] = (
+                            "Pending registration"
+                        )
+
+                        existing_assignment["Reason"] = (
+                            "Local scheduler assignment already exists; "
+                            "awaiting Triweb confirmation."
+                        )
+
+                        assignments.append(
+                            existing_assignment
+                        )
+
                     break
                 candidates = self._candidates_for_stage(snapshot, state, project, department, ready_at)
                 if candidates.empty:
