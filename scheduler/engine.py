@@ -374,12 +374,58 @@ class SchedulerEngine:
             employee_id, status, worked_seconds = stage_values(project, department)
             normalized_id = normalize_employee_id(employee_id)
             if clean_status(status) == "en cours":
-                remaining = remaining_stage_hours(project["Nature"], department, worked_seconds)
-                busy_until = calendar.calculate_busy_until(normalized_id, remaining, planning_start) if remaining is not None else None
-                assignments.append(self._assignment_record(
-                    project, department, EmployeeID=normalized_id, EmployeeName=self._employee_name(snapshot, normalized_id), End=busy_until if busy_until is not None else pd.NaT,
-                    Reason="Stage currently in progress; downstream stage must wait" if busy_until is not None else "Current stage is in progress but finish time could not be estimated.",
-                ))
+
+                remaining = remaining_stage_hours(
+                    project["Nature"],
+                    department,
+                    worked_seconds
+                )
+
+                busy_until = (
+                    calendar.calculate_busy_until(
+                        normalized_id,
+                        remaining,
+                        planning_start
+                    )
+                    if remaining is not None
+                    else None
+                )
+
+                assignments.append(
+                    self._assignment_record(
+                        project,
+                        department,
+                        EmployeeID=normalized_id,
+                        EmployeeName=self._employee_name(
+                            snapshot,
+                            normalized_id
+                        ),
+                        End=(
+                            busy_until
+                            if busy_until is not None
+                            else pd.NaT
+                        ),
+                        Reason=(
+                            "Stage currently in progress; "
+                            "next stage may be assigned and will start "
+                            "after this stage finishes."
+                            if busy_until is not None
+                            else
+                            "Stage currently in progress; "
+                            "finish time could not be estimated."
+                        ),
+                    )
+                )
+
+                # IMPORTANT:
+                # Do NOT break here if we know when the stage finishes.
+                # The downstream employee can be assigned now.
+                if busy_until is not None:
+                    ready_at = pd.Timestamp(busy_until)
+                    continue
+
+                # If we cannot estimate the finish time, we cannot safely
+                # calculate a start for the downstream stage.
                 break
             assignments.append(self._assignment_record(
                 project, department, EmployeeID=normalized_id, EmployeeName=self._employee_name(snapshot, normalized_id),
