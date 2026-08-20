@@ -7,14 +7,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from scheduler.api import AssignmentRegistrationUnavailable, TriwebApiError
-from scheduler.employees import load_employees
-from scheduler.engine import SchedulerEngine, SchedulerSnapshot, snapshot_metrics
+from scheduler.api import (
+    AssignmentRegistrationUnavailable,
+    TriwebApiError,
+)
 
+from scheduler.employees import load_employees, normalize_employee_id
+
+
+from scheduler.engine import (
+    SchedulerEngine,
+    SchedulerSnapshot,
+    snapshot_metrics,
+)
+
+from scheduler.projects import clean_status
 
 st.set_page_config(page_title="TriwebAPS", page_icon="image.png", layout="wide", initial_sidebar_state="expanded")
 st.markdown(
@@ -66,16 +78,185 @@ def rebuild_snapshot(engine: SchedulerEngine, snapshot: SchedulerSnapshot) -> No
     st.session_state.last_action = "Current API snapshot rebuilt without another network request."
 
 
-def local_assignments(engine: SchedulerEngine, snapshot: SchedulerSnapshot) -> pd.DataFrame:
-    registry = engine.registry_assignments()
-    if registry.empty:
-        return snapshot.assignments.copy()
-    if snapshot.assignments.empty:
-        return registry.copy()
-    return pd.concat([registry, snapshot.assignments], ignore_index=True, sort=False).drop_duplicates(
-        ["ProjectID", "Department", "Status"], keep="last"
+def local_assignments(
+    engine: SchedulerEngine,
+    snapshot: SchedulerSnapshot,
+) -> pd.DataFrame:
+    """
+    Build the operational scheduler view.
+
+    Priority:
+        1. Live API assignment
+        2. Current scheduler run
+        3. Local registry assignment
+
+    One ProjectID + Department = one current row.
+
+    Registered assignments already confirmed by Triweb
+    are not shown in the Current Scheduler Decisions table.
+    """
+
+    registry = engine.registry_assignments().copy()
+    current_run = snapshot.assignments.copy()
+
+    rows = {}
+
+    # ==========================================================
+    # 1. LIVE API = HIGHEST PRIORITY
+    # ==========================================================
+
+    for _, project in snapshot.projects.iterrows():
+
+        project_id = str(
+            project["ProjectID"]
+        )
+
+        workflow = project["Workflow"]
+
+        if workflow is None:
+            continue
+
+        for department in workflow:
+
+            if department == "Redaction":
+
+                employee_id = project["RedactorID"]
+                employee_name = project["Redactor"]
+                status = project["RedacStatus"]
+
+            elif department == "Graphe":
+
+                employee_id = project["GraphistID"]
+                employee_name = project["Graphist"]
+                status = project["GraphStatus"]
+
+            else:
+                continue
+
+            employee_id = normalize_employee_id(
+                employee_id
+            )
+
+            # API has a real employee
+            if employee_id not in (None, "0"):
+
+                # Resolve canonical employee name
+                matches = snapshot.employees[
+                    snapshot.employees["EmployeeID"]
+                    .apply(normalize_employee_id)
+                    .eq(employee_id)
+                ]
+
+                if not matches.empty:
+                    employee_name = (
+                        matches.iloc[0]["EmployeeName"]
+                    )
+
+                key = (
+                    project_id,
+                    department,
+                )
+
+                rows[key] = {
+                    "Status": "Registered",
+                    "ProjectID": project_id,
+                    "Department": department,
+                    "EmployeeID": employee_id,
+                    "EmployeeName": employee_name,
+                    "Priority": project["Priority"],
+                    "Start": pd.NaT,
+                    "End": pd.NaT,
+                    "Performance": pd.NA,
+                    "Reason": (
+                        "Current Triweb assignment "
+                        f"({str(status).strip()})"
+                    ),
+                }
+
+    # ==========================================================
+    # 2. CURRENT SCHEDULER RUN
+    # ==========================================================
+
+    if not current_run.empty:
+
+        for _, assignment in current_run.iterrows():
+
+            project_id = str(
+                assignment["ProjectID"]
+            )
+
+            department = str(
+                assignment["Department"]
+            )
+
+            key = (
+                project_id,
+                department,
+            )
+
+            # Live API already contains an employee.
+            # Never overwrite API reality.
+            if key in rows:
+                continue
+
+            rows[key] = assignment.to_dict()
+
+    # ==========================================================
+    # 3. LOCAL REGISTRY
+    # ==========================================================
+
+    if not registry.empty:
+
+        for _, assignment in registry.iterrows():
+
+            project_id = str(
+                assignment["ProjectID"]
+            )
+
+            department = str(
+                assignment["Department"]
+            )
+
+            key = (
+                project_id,
+                department,
+            )
+
+            # API or current scheduler already has the truth.
+            if key in rows:
+                continue
+
+            rows[key] = assignment.to_dict()
+
+    # ==========================================================
+    # 4. BUILD FINAL DATAFRAME
+    # ==========================================================
+
+    if not rows:
+        return pd.DataFrame()
+
+    result = pd.DataFrame(
+        list(rows.values())
     )
 
+    # ----------------------------------------------------------
+    # Do NOT show already-confirmed API assignments in the
+    # "Current scheduler decisions" table.
+    # ----------------------------------------------------------
+
+    if "Status" in result.columns:
+
+        result = result[
+            result["Status"]
+            .astype(str)
+            .str.strip()
+            .str.casefold()
+            .ne("registered")
+        ].copy()
+
+    return result.reset_index(
+        drop=True
+    )
 
 def render_metrics(snapshot: SchedulerSnapshot, engine: SchedulerEngine) -> None:
     metrics = snapshot_metrics(snapshot, engine.registry_assignments())

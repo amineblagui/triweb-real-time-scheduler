@@ -176,6 +176,58 @@ def rank_candidates(candidates: pd.DataFrame, priority: object) -> pd.DataFrame:
 
 class SchedulerEngine:
     """Refresh, reconstruct, rank, and calculate a non-destructive schedule."""
+    def _register_reserved_assignment(
+        self,
+        state: pd.DataFrame,
+        employee_id: object,
+        project_id: object,
+        department: str,
+    ) -> None:
+        """
+        Reserve an employee for a future workflow stage.
+
+        No Start/End exists yet because the upstream stage
+        has no known finish time.
+        """
+
+        matches = state.index[
+            state["EmployeeID"].eq(
+                normalize_employee_id(employee_id)
+            )
+        ]
+
+        if len(matches) != 1:
+            raise ValueError(
+                f"Employee {employee_id} not found uniquely."
+            )
+
+        index = matches[0]
+
+        state.at[
+            index,
+            "ScheduledProjects"
+        ].append({
+            "ProjectID": str(project_id),
+            "Department": department,
+            "Start": pd.NaT,
+            "End": pd.NaT,
+            "Reserved": True,
+        })
+
+        # Important:
+        # This prevents the employee from being selected
+        # for another project during this scheduler run.
+        state.at[
+            index,
+            "QueuedProjects"
+        ] = (
+            int(
+                state.at[
+                    index,
+                    "QueuedProjects"
+                ]
+            ) + 1
+        )
 
     def __init__(
         self,
@@ -257,6 +309,19 @@ class SchedulerEngine:
             if rows.empty:
                 continue
             employee_state = rows.iloc[0]
+            # ----------------------------------------------------
+            # HARD RULE:
+            # An employee already reserved by this scheduler run
+            # cannot receive another project.
+            # ----------------------------------------------------
+
+            scheduled_projects = employee_state.get(
+                "ScheduledProjects",
+                []
+            )
+
+            if isinstance(scheduled_projects, list) and scheduled_projects:
+                continue
             # Fundamental eligibility rule from the validated notebook.
             if employee_state["CurrentProject"] is not None or bool(employee_state["IsCurrentlyBusy"]) or int(employee_state["QueuedProjects"]) > 0:
                 continue
@@ -277,7 +342,158 @@ class SchedulerEngine:
                 "ProductionProjects": int(employee_state["ProductionProjects"]), "WeeklyAllocation": weekly_allocation,
             })
         return pd.DataFrame(records).sort_values(["Start", "EmployeeName"]).reset_index(drop=True) if records else pd.DataFrame()
+    def _employee_has_local_reservation(
+        self,
+        employee_id: object,
+        current_project_id: object,
+        current_department: str,
+    ) -> bool:
+        """
+        Return True when the employee is already reserved by
+        another local scheduler assignment that Triweb has not
+        confirmed yet.
+        """
 
+        registry = self.registry.assignments()
+
+        if registry.empty:
+            return False
+
+        employee_id = normalize_employee_id(
+            employee_id
+        )
+
+        current_project_id = str(
+            current_project_id
+        )
+
+        blocking_statuses = {
+            "Calculated",
+            "Pending registration",
+            "Reserved",
+        }
+
+        registry = registry.copy()
+
+        registry["_EmployeeID"] = (
+            registry["EmployeeID"]
+            .apply(normalize_employee_id)
+        )
+
+        registry["_ProjectID"] = (
+            registry["ProjectID"]
+            .astype(str)
+        )
+
+        for _, row in registry.iterrows():
+
+            if row["_EmployeeID"] != employee_id:
+                continue
+
+            # Same project is allowed
+            if row["_ProjectID"] == current_project_id:
+                continue
+
+            if row.get("Status") in blocking_statuses:
+                return True
+
+        return False
+    def _reservation_candidates_for_stage(
+        self,
+        snapshot: SchedulerSnapshot,
+        state: pd.DataFrame,
+        project: pd.Series,
+        department: str,
+    ) -> pd.DataFrame:
+        """
+        Find employees who can be reserved for a future workflow stage.
+
+        No concrete Start/End is calculated because the previous
+        stage does not have a known finish time.
+        """
+
+        records = []
+
+        qualified = snapshot.employees[
+            snapshot.employees["Department"].eq(department)
+        ]
+
+        for _, employee in qualified.iterrows():
+
+            employee_id = employee["EmployeeID"]
+
+            employee_rows = state[
+                state["EmployeeID"].eq(employee_id)
+            ]
+
+            if employee_rows.empty:
+                continue
+
+            employee_state = employee_rows.iloc[0]
+
+            # Already working
+            if employee_state["CurrentProject"] is not None:
+                continue
+
+            if bool(employee_state["IsCurrentlyBusy"]):
+                continue
+
+            # Already has queued work
+            if int(employee_state["QueuedProjects"]) > 0:
+                continue
+
+            available_at = employee_state["AvailableAt"]
+
+            if pd.isna(available_at):
+                continue
+
+            records.append({
+                "EmployeeID": employee_id,
+                "EmployeeName": employee["EmployeeName"],
+                "Department": department,
+
+                # Only used to rank earliest availability
+                "Start": pd.Timestamp(available_at),
+
+                # Unknown because upstream finish is unknown
+                "End": pd.NaT,
+
+                "DurationHours": stage_expected_hours(
+                    project["Nature"],
+                    department,
+                ),
+
+                "QualityScore": employee["QualityScore"],
+                "RapidityScore": employee["RapidityScore"],
+                "Confidence": employee["Confidence"],
+
+                "QueuedProjects": int(
+                    employee_state["QueuedProjects"]
+                ),
+
+                "PausedProjects": int(
+                    employee_state["PausedProjects"]
+                ),
+
+                "ProductionProjects": int(
+                    employee_state["ProductionProjects"]
+                ),
+
+                "WeeklyAllocation": employee_state[
+                    "WeeklyAllocation"
+                ],
+            })
+
+        if not records:
+            return pd.DataFrame()
+
+        return (
+            pd.DataFrame(records)
+            .sort_values(
+                ["Start", "EmployeeName"]
+            )
+            .reset_index(drop=True)
+        )
     def _register_scheduled_assignment(
         self, state: pd.DataFrame, chosen: pd.Series, project_id: object, department: str, calendar: AvailabilityCalendar
     ) -> None:
@@ -309,83 +525,650 @@ class SchedulerEngine:
         record.update(updates)
         return record
 
-    def _schedule_project(self, snapshot: SchedulerSnapshot, state: pd.DataFrame, source_project: pd.Series, planning_start: pd.Timestamp) -> list[dict[str, Any]]:
-        project = source_project.copy()  # never mutate the API snapshot
-        workflow = project["Workflow"]
-        if workflow is None:
-            return [self._assignment_record(project, pd.NA, Reason="Unknown workflow")]
-        calendar = self._calendar(snapshot)
-        assignments: list[dict[str, Any]] = []
-        ready_at = planning_start
-        for department in workflow:
-            if stage_is_finished(project, department):
+    def _apply_active_local_assignments(
+        self,
+        snapshot: SchedulerSnapshot,
+        state: pd.DataFrame,
+        planning_start: pd.Timestamp,
+    ) -> None:
+        """
+        Load valid local scheduler reservations into the live
+        scheduler state so an employee cannot be assigned again.
+
+        Rules:
+            - API-confirmed assignments are already represented by
+            the live state and are not added again.
+            - Local assignments starting before planning_start are
+            considered stale unless the API says the stage is
+            actually En cours.
+            - Future Pending registration / Reserved assignments
+            block the employee.
+        """
+
+        registry = self.registry.assignments()
+
+        if registry.empty:
+            return
+
+        for _, assignment in registry.iterrows():
+
+            status = str(
+                assignment.get("Status", "")
+            ).strip().casefold()
+
+            if status not in {
+                "pending registration",
+                "reserved",
+                "calculated",
+            }:
                 continue
-            if stage_needs_assignment(project, department):
+
+            project_id = str(
+                assignment["ProjectID"]
+            )
+
+            department = str(
+                assignment["Department"]
+            )
+
+            # ----------------------------------------------------
+            # Find project in live API
+            # ----------------------------------------------------
+
+            matches = snapshot.projects[
+                snapshot.projects["ProjectID"]
+                .astype(str)
+                .eq(project_id)
+            ]
+
+            if matches.empty:
+                continue
+
+            project = matches.iloc[0]
+
+            # ----------------------------------------------------
+            # If API already has a real employee for this stage,
+            # this is API truth. Registry does not block anything.
+            # ----------------------------------------------------
+
+            if department == "Redaction":
+
+                api_employee = normalize_employee_id(
+                    project["RedactorID"]
+                )
+
+            elif department == "Graphe":
+
+                api_employee = normalize_employee_id(
+                    project["GraphistID"]
+                )
+
+            else:
+                continue
+
+            if api_employee not in (None, "0"):
+                continue
+
+            # ----------------------------------------------------
+            # Check local timing
+            # ----------------------------------------------------
+
+            start = pd.to_datetime(
+                assignment.get("Start"),
+                errors="coerce",
+            )
+
+            end = pd.to_datetime(
+                assignment.get("End"),
+                errors="coerce",
+            )
+
+            # Old local assignment
+            if pd.notna(start) and start < planning_start:
+
+                # If API says it is actually in progress, don't
+                # treat it as stale.
+                if department == "Redaction":
+                    live_status = clean_status(
+                        project["RedacStatus"]
+                    )
+                else:
+                    live_status = clean_status(
+                        project["GraphStatus"]
+                    )
+
+                if live_status != "en cours":
+                    continue
+
+            employee_id = normalize_employee_id(
+                assignment.get("EmployeeID")
+            )
+
+            if employee_id is None:
+                continue
+
+            employee_rows = state[
+                state["EmployeeID"].apply(
+                    normalize_employee_id
+                ).eq(employee_id)
+            ]
+
+            if employee_rows.empty:
+                continue
+
+            index = employee_rows.index[0]
+
+            # ----------------------------------------------------
+            # Block employee
+            # ----------------------------------------------------
+
+            scheduled = list(
+                state.at[
+                    index,
+                    "ScheduledProjects"
+                ]
+            )
+
+            scheduled.append({
+                "ProjectID": project_id,
+                "Department": department,
+                "Start": start,
+                "End": end,
+                "Reserved": (
+                    status == "reserved"
+                ),
+            })
+
+            state.at[
+                index,
+                "ScheduledProjects"
+            ] = scheduled
+
+            state.at[
+                index,
+                "QueuedProjects"
+            ] = (
+                int(
+                    state.at[
+                        index,
+                        "QueuedProjects"
+                    ]
+                ) + 1
+            )
+    
+    def _schedule_project(
+        self,
+        snapshot: SchedulerSnapshot,
+        state: pd.DataFrame,
+        source_project: pd.Series,
+        planning_start: pd.Timestamp,
+    ) -> list[dict[str, Any]]:
+
+        project = source_project.copy()
+
+        workflow = project["Workflow"]
+
+        if workflow is None:
+            return [
+                self._assignment_record(
+                    project,
+                    pd.NA,
+                    Reason="Unknown workflow",
+                )
+            ]
+
+        calendar = self._calendar(snapshot)
+
+        assignments = []
+
+        # Earliest known start time for the next stage
+        ready_at = pd.Timestamp(planning_start)
+
+        # True when an upstream stage exists but its finish time
+        # is not known yet.
+        dependency_unknown = False
+
+        previous_department = None
+
+        # ========================================================
+        # PROCESS PROJECT WORKFLOW
+        # ========================================================
+
+        for department in workflow:
+
+            # ----------------------------------------------------
+            # Stage already finished
+            # ----------------------------------------------------
+
+            if stage_is_finished(
+                project,
+                department
+            ):
+                previous_department = department
+                continue
+
+            # ====================================================
+            # STAGE NEEDS ASSIGNMENT
+            # ====================================================
+
+            if stage_needs_assignment(
+                project,
+                department
+            ):
+
+                # ------------------------------------------------
+                # CASE A:
+                # Previous stage has unknown finish time
+                #
+                # Example:
+                # Redaction = Affecté
+                # Graphe = En instance
+                # ------------------------------------------------
+
+                if dependency_unknown:
+
+                    candidates = (
+                        self._reservation_candidates_for_stage(
+                            snapshot=snapshot,
+                            state=state,
+                            project=project,
+                            department=department,
+                        )
+                    )
+
+                    if candidates.empty:
+
+                        assignments.append(
+                            self._assignment_record(
+                                project,
+                                department,
+                                Status="Waiting",
+                                Reason=(
+                                    "No employee available for "
+                                    "future reservation."
+                                ),
+                            )
+                        )
+
+                        break
+
+                    # Rank available employees.
+                    #
+                    # We use available_at as Start only for ranking.
+                    ranked = rank_candidates(
+                        candidates,
+                        project["Priority"],
+                    )
+
+                    chosen = ranked.iloc[0]
+
+                    employee_id = chosen["EmployeeID"]
+
+                    # --------------------------------------------
+                    # Reserve employee locally
+                    # --------------------------------------------
+
+                    self._register_reserved_assignment(
+                        state=state,
+                        employee_id=employee_id,
+                        project_id=project["ProjectID"],
+                        department=department,
+                    )
+
+                    # --------------------------------------------
+                    # Update local project copy
+                    # --------------------------------------------
+
+                    update_local_assignment(
+                        project,
+                        department,
+                        employee_id,
+                    )
+
+                    reservation = self._assignment_record(
+                        project,
+                        department,
+
+                        EmployeeID=employee_id,
+
+                        EmployeeName=(
+                            chosen["EmployeeName"]
+                        ),
+
+                        Start=pd.NaT,
+                        End=pd.NaT,
+
+                        DurationHours=pd.NA,
+
+                        Performance=(
+                            chosen["Performance"]
+                        ),
+
+                        QueuedProjects=(
+                            chosen["QueuedProjects"]
+                        ),
+
+                        PausedProjects=(
+                            chosen["PausedProjects"]
+                        ),
+
+                        ProductionProjects=(
+                            chosen["ProductionProjects"]
+                        ),
+
+                        WeeklyAllocation=(
+                            chosen["WeeklyAllocation"]
+                        ),
+
+                        Status="Reserved",
+
+                        Reason=(
+                            "Employee reserved now; "
+                            "start will be scheduled after "
+                            f"{previous_department} "
+                            "finishes."
+                        ),
+                    )
+
+                    if not self.registry.has_local_assignment(
+                        project["ProjectID"],
+                        department,
+                    ):
+                        self.registry.record(
+                            reservation
+                        )
+
+                    assignments.append(
+                        reservation
+                    )
+
+                    # Continue workflow
+                    previous_department = department
+                    continue
+
+                # ------------------------------------------------
+                # CASE B:
+                # Normal scheduling with known earliest start
+                # ------------------------------------------------
+
                 if self.registry.has_local_assignment(
                     project["ProjectID"],
-                    department
+                    department,
                 ):
-                    existing = self.registry.assignments()
 
-                    existing = existing[
-                        existing["ProjectID"].astype(str).eq(
+                    registry = (
+                        self.registry.assignments()
+                    )
+
+                    existing = registry[
+                        registry["ProjectID"]
+                        .astype(str)
+                        .eq(
                             str(project["ProjectID"])
                         )
-                        & existing["Department"].astype(str).eq(
+                        &
+                        registry["Department"]
+                        .astype(str)
+                        .eq(
                             str(department)
                         )
-                    ]
+                    ].copy()
 
                     if not existing.empty:
-                        existing_assignment = existing.iloc[-1].to_dict()
 
-                        existing_assignment["Status"] = (
-                            "Pending registration"
+                        existing_row = (
+                            existing.iloc[-1]
                         )
 
-                        existing_assignment["Reason"] = (
-                            "Local scheduler assignment already exists; "
-                            "awaiting Triweb confirmation."
+                        existing_employee = (
+                            normalize_employee_id(
+                                existing_row[
+                                    "EmployeeID"
+                                ]
+                            )
+                        )
+
+                        existing_end = pd.to_datetime(
+                            existing_row.get("End"),
+                            errors="coerce",
+                        )
+
+                        update_local_assignment(
+                            project,
+                            department,
+                            existing_employee,
                         )
 
                         assignments.append(
-                            existing_assignment
+                            self._assignment_record(
+                                project,
+                                department,
+
+                                EmployeeID=existing_employee,
+
+                                EmployeeName=(
+                                    self._employee_name(
+                                        snapshot,
+                                        existing_employee,
+                                    )
+                                ),
+
+                                Start=pd.to_datetime(
+                                    existing_row.get("Start"),
+                                    errors="coerce",
+                                ),
+
+                                End=existing_end,
+
+                                DurationHours=(
+                                    existing_row.get(
+                                        "DurationHours",
+                                        pd.NA,
+                                    )
+                                ),
+
+                                Performance=(
+                                    existing_row.get(
+                                        "Performance",
+                                        np.nan,
+                                    )
+                                ),
+
+                                Status=(
+                                    existing_row.get(
+                                        "Status",
+                                        "Pending registration",
+                                    )
+                                ),
+
+                                Reason=(
+                                    "Local scheduler assignment "
+                                    "already exists."
+                                ),
+                            )
                         )
 
-                    break
-                candidates = self._candidates_for_stage(snapshot, state, project, department, ready_at)
-                if candidates.empty:
-                    assignments.append(self._assignment_record(project, department, DurationHours=stage_expected_hours(project["Nature"], department), Reason="No feasible employee available within the live availability horizon."))
-                    break
-                chosen = rank_candidates(candidates, project["Priority"]).iloc[0]
-                self._register_scheduled_assignment(state, chosen, project["ProjectID"], department, calendar)
-                update_local_assignment(project, department, chosen["EmployeeID"])
-                assignment = self._assignment_record(
-                    project, department, EmployeeID=chosen["EmployeeID"], EmployeeName=chosen["EmployeeName"],
-                    Start=chosen["Start"], End=chosen["End"], DurationHours=chosen["DurationHours"],
-                    Performance=chosen["Performance"], QueuedProjects=chosen["QueuedProjects"], PausedProjects=chosen["PausedProjects"],
-                    ProductionProjects=chosen["ProductionProjects"], WeeklyAllocation=chosen["WeeklyAllocation"],
-                    Status="Calculated", Reason="Best feasible candidate",
+                        # If we know the end, the next stage can
+                        # start after it.
+                        if pd.notna(existing_end):
+
+                            ready_at = max(
+                                ready_at,
+                                pd.Timestamp(existing_end),
+                            )
+
+                        else:
+
+                            dependency_unknown = True
+
+                        previous_department = department
+                        continue
+
+                # ------------------------------------------------
+                # Find normal candidates
+                # ------------------------------------------------
+
+                candidates = (
+                    self._candidates_for_stage(
+                        snapshot,
+                        state,
+                        project,
+                        department,
+                        ready_at,
+                    )
                 )
-                self.registry.record(assignment)
-                assignments.append(assignment)
-                ready_at = pd.Timestamp(chosen["End"])
+
+                if candidates.empty:
+
+                    assignments.append(
+                        self._assignment_record(
+                            project,
+                            department,
+                            DurationHours=(
+                                stage_expected_hours(
+                                    project["Nature"],
+                                    department,
+                                )
+                            ),
+                            Status="Waiting",
+                            Reason=(
+                                "No feasible employee available "
+                                "within the live availability horizon."
+                            ),
+                        )
+                    )
+
+                    break
+
+                ranked = rank_candidates(
+                    candidates,
+                    project["Priority"],
+                )
+
+                chosen = ranked.iloc[0]
+
+                employee_id = chosen[
+                    "EmployeeID"
+                ]
+
+                # ----------------------------------------------
+                # Register normal scheduled assignment
+                # ----------------------------------------------
+
+                self._register_scheduled_assignment(
+                    state=state,
+                    chosen=chosen,
+                    project_id=project["ProjectID"],
+                    department=department,
+                    calendar=calendar,
+                )
+
+                update_local_assignment(
+                    project,
+                    department,
+                    employee_id,
+                )
+
+                assignment = self._assignment_record(
+                    project,
+                    department,
+
+                    EmployeeID=employee_id,
+                    EmployeeName=chosen["EmployeeName"],
+
+                    Start=chosen["Start"],
+                    End=chosen["End"],
+
+                    DurationHours=chosen[
+                        "DurationHours"
+                    ],
+
+                    Performance=chosen[
+                        "Performance"
+                    ],
+
+                    QueuedProjects=chosen[
+                        "QueuedProjects"
+                    ],
+
+                    PausedProjects=chosen[
+                        "PausedProjects"
+                    ],
+
+                    ProductionProjects=chosen[
+                        "ProductionProjects"
+                    ],
+
+                    WeeklyAllocation=chosen[
+                        "WeeklyAllocation"
+                    ],
+
+                    Status="Calculated",
+
+                    Reason="Best feasible candidate",
+                )
+
+                                # ----------------------------------------------------
+                # Save only if this ProjectID + Department does not
+                # already exist in the local registry.
+                # ----------------------------------------------------
+
+                if not self.registry.has_local_assignment(
+                    project["ProjectID"],
+                    department,
+                ):
+                    self.registry.record(
+                        assignment
+                    )
+
+                assignments.append(
+                    assignment
+                )
+
+                ready_at = pd.Timestamp(
+                    chosen["End"]
+                )
+
+                previous_department = department
+
                 continue
-            employee_id, status, worked_seconds = stage_values(project, department)
-            normalized_id = normalize_employee_id(employee_id)
-            if clean_status(status) == "en cours":
+
+            # ====================================================
+            # EXISTING STAGE
+            # ====================================================
+
+            employee_id, status, worked_seconds = (
+                stage_values(
+                    project,
+                    department,
+                )
+            )
+
+            normalized_id = normalize_employee_id(
+                employee_id
+            )
+
+            clean_stage_status = clean_status(
+                status
+            )
+
+            # ====================================================
+            # EN COURS
+            # ====================================================
+
+            if clean_stage_status == "en cours":
 
                 remaining = remaining_stage_hours(
                     project["Nature"],
                     department,
-                    worked_seconds
+                    worked_seconds,
                 )
 
                 busy_until = (
                     calendar.calculate_busy_until(
                         normalized_id,
                         remaining,
-                        planning_start
+                        planning_start,
                     )
                     if remaining is not None
                     else None
@@ -395,43 +1178,133 @@ class SchedulerEngine:
                     self._assignment_record(
                         project,
                         department,
+
                         EmployeeID=normalized_id,
-                        EmployeeName=self._employee_name(
-                            snapshot,
-                            normalized_id
+
+                        EmployeeName=(
+                            self._employee_name(
+                                snapshot,
+                                normalized_id,
+                            )
                         ),
+
+                        Start=pd.NaT,
+
                         End=(
                             busy_until
                             if busy_until is not None
                             else pd.NaT
                         ),
+
+                        Status="Waiting",
+
                         Reason=(
                             "Stage currently in progress; "
-                            "next stage may be assigned and will start "
-                            "after this stage finishes."
-                            if busy_until is not None
-                            else
-                            "Stage currently in progress; "
-                            "finish time could not be estimated."
+                            "downstream stage can be assigned "
+                            "now."
                         ),
                     )
                 )
 
-                # IMPORTANT:
-                # Do NOT break here if we know when the stage finishes.
-                # The downstream employee can be assigned now.
                 if busy_until is not None:
-                    ready_at = pd.Timestamp(busy_until)
-                    continue
 
-                # If we cannot estimate the finish time, we cannot safely
-                # calculate a start for the downstream stage.
-                break
-            assignments.append(self._assignment_record(
-                project, department, EmployeeID=normalized_id, EmployeeName=self._employee_name(snapshot, normalized_id),
-                Reason=f"{department} stage is '{clean_status(status)}' and is not finished.",
-            ))
-            break
+                    ready_at = max(
+                        ready_at,
+                        pd.Timestamp(busy_until),
+                    )
+
+                    # IMPORTANT:
+                    # Continue to Graphe.
+                    dependency_unknown = False
+
+                else:
+
+                    # We don't know when this stage finishes.
+                    # The downstream stage can still be RESERVED.
+                    dependency_unknown = True
+
+                previous_department = department
+
+                continue
+
+            # ====================================================
+            # AFFECTÉ / EN PAUSE
+            # ====================================================
+
+            if clean_stage_status in {
+                "affecté",
+                "en pause",
+            }:
+
+                assignments.append(
+                    self._assignment_record(
+                        project,
+                        department,
+
+                        EmployeeID=normalized_id,
+
+                        EmployeeName=(
+                            self._employee_name(
+                                snapshot,
+                                normalized_id,
+                            )
+                        ),
+
+                        Start=pd.NaT,
+                        End=pd.NaT,
+
+                        Status="Waiting",
+
+                        Reason=(
+                            f"{department} stage is "
+                            f"'{clean_stage_status}'. "
+                            "Finish time is unknown; "
+                            "downstream stage may be reserved."
+                        ),
+                    )
+                )
+
+                dependency_unknown = True
+
+                previous_department = department
+
+                continue
+
+            # ====================================================
+            # OTHER UNFINISHED STATE
+            # ====================================================
+
+            assignments.append(
+                self._assignment_record(
+                    project,
+                    department,
+
+                    EmployeeID=normalized_id,
+
+                    EmployeeName=(
+                        self._employee_name(
+                            snapshot,
+                            normalized_id,
+                        )
+                    ),
+
+                    Start=pd.NaT,
+                    End=pd.NaT,
+
+                    Status="Waiting",
+
+                    Reason=(
+                        f"{department} stage is "
+                        f"'{clean_stage_status}' "
+                        "and its finish time is unknown."
+                    ),
+                )
+            )
+
+            dependency_unknown = True
+
+            previous_department = department
+
         return assignments
 
     def run_scheduler(self, snapshot: SchedulerSnapshot, planning_start: pd.Timestamp | None = None) -> SchedulerSnapshot:
