@@ -98,61 +98,51 @@ def availability_grid(snapshot: SchedulerSnapshot, department: str = "All", empl
     return availability
 
 
-def render_scheduler(snapshot: SchedulerSnapshot, engine: SchedulerEngine) -> None:
-    heading("Real-time scheduler", "Live availability, current Production workload, and auditable assignment decisions.")
-    assignments = local_assignments(engine, snapshot)
-    scheduled = assignments.copy()
-    if not scheduled.empty:
-        scheduled["Start"] = pd.to_datetime(scheduled["Start"], errors="coerce")
-        scheduled["End"] = pd.to_datetime(scheduled["End"], errors="coerce")
-        scheduled = scheduled[scheduled["Start"].notna() & scheduled["End"].notna()].copy()
-    if scheduled.empty:
-        st.info("No calculated assignments yet. Refresh the APIs, then choose Run Scheduler.")
-    else:
-        first, second, third, fourth = st.columns(4)
-        departments = sorted(scheduled["Department"].dropna().astype(str).unique().tolist())
-        people = sorted(scheduled["EmployeeName"].dropna().astype(str).unique().tolist())
-        priorities = sorted(scheduled["Priority"].dropna().unique().tolist())
-        statuses = sorted(scheduled["Status"].dropna().astype(str).unique().tolist())
-        selected_departments = first.multiselect("Department", departments, default=departments)
-        selected_people = second.multiselect("Employee", people, default=people)
-        selected_priorities = third.multiselect("Priority", priorities, default=priorities)
-        selected_statuses = fourth.multiselect("Status", statuses, default=statuses)
-        project_search = st.text_input("Project ID or client", placeholder="e.g. 142071 or client name")
-        start_date, end_date = scheduled["Start"].min().date(), scheduled["End"].max().date()
-        range_value = st.date_input("Timeline range", value=(start_date, end_date))
-        gantt = scheduled[
-            scheduled["Department"].isin(selected_departments)
-            & scheduled["EmployeeName"].astype(str).isin(selected_people)
-            & scheduled["Priority"].isin(selected_priorities)
-            & scheduled["Status"].isin(selected_statuses)
-        ].copy()
-        if project_search.strip():
-            query = project_search.casefold().strip()
-            gantt = gantt[
-                gantt["ProjectID"].astype(str).str.casefold().str.contains(query, na=False)
-                | gantt.get("Client", pd.Series("", index=gantt.index)).astype(str).str.casefold().str.contains(query, na=False)
-            ]
-        if isinstance(range_value, tuple) and len(range_value) == 2:
-            gantt = gantt[gantt["End"].dt.date.ge(range_value[0]) & gantt["Start"].dt.date.le(range_value[1])]
-        if gantt.empty:
-            st.warning("No assignments match the selected scheduler filters.")
-        else:
-            hover_fields = [field for field in ["ProjectID", "Client", "Nature", "Department", "Priority", "ReceptionDate", "DeliveryDate", "DurationHours", "Status", "CurrentStage", "Performance", "Reason"] if field in gantt]
-            figure = px.timeline(
-                gantt, x_start="Start", x_end="End", y="EmployeeName", color="Department", hover_data=hover_fields,
-                color_discrete_map={"Redaction": "#2563eb", "Graphe": "#f97316"},
-            )
-            figure.update_yaxes(autorange="reversed", title=None)
-            figure.update_xaxes(rangeslider_visible=True, title=None)
-            figure.update_layout(height=max(420, 70 * gantt["EmployeeName"].nunique()), margin=dict(l=8, r=8, t=25, b=8), legend_title_text="Department")
-            st.plotly_chart(figure, use_container_width=True)
+def render_scheduler(
+    snapshot: SchedulerSnapshot,
+    engine: SchedulerEngine
+) -> None:
+
+    heading(
+        "Real-time scheduler",
+        "Live availability, current Production workload, and auditable assignment decisions."
+    )
+
+    assignments = local_assignments(
+        engine,
+        snapshot
+    )
+
     st.subheader("Current scheduler decisions")
+
     if assignments.empty:
-        st.caption("No local scheduler assignment has been calculated.")
+        st.caption(
+            "No local scheduler assignment has been calculated."
+        )
     else:
-        columns = [column for column in ["Status", "ProjectID", "Department", "EmployeeName", "Priority", "Start", "End", "Performance", "Reason"] if column in assignments]
-        st.dataframe(dataframe_for_display(assignments[columns]), use_container_width=True, hide_index=True)
+        columns = [
+            column
+            for column in [
+                "Status",
+                "ProjectID",
+                "Department",
+                "EmployeeName",
+                "Priority",
+                "Start",
+                "End",
+                "Performance",
+                "Reason",
+            ]
+            if column in assignments
+        ]
+
+        st.dataframe(
+            dataframe_for_display(
+                assignments[columns]
+            ),
+            use_container_width=True,
+            hide_index=True
+        )
 
 
 def render_employees(snapshot: SchedulerSnapshot) -> None:
