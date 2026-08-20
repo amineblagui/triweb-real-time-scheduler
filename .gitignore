@@ -3,3 +3,9 @@ obj/
 dist/
 node_modules/
 *.log
+
+__pycache__/
+*.pyc
+
+data/assignment_registry_backup_20260820.json
+data/assignment_registry_old.json
